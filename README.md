@@ -12,5 +12,5 @@ Make the code modular, example:
 
 Three cases when inserting into a table:
 * a simple value
-* a relationnal table (need an id for a given value)
-* a many2many relation (need the ids of the current row of this table and the other table for a given value, these ids to be inserted in a third table)
+* a many2one relation (need an id for a given value)
+* a many2many relation (need two ids and a third table)
