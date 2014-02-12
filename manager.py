@@ -12,7 +12,7 @@ Manager
 Manage the insertion of data into a database.
     '''
     def __init__(self, host, dbname, password):
-        self.sock = xmlrpclib.ServerProxy(host + '/xmlrpc/object')
+        self.sock = xmlrpclib.ServerProxy(host + '/xmlrpc/object', allow_none=True)
         self.uid = 1
         self.db = dbname
         self.pwd = password
