@@ -12,39 +12,35 @@ from table import Table
 class ProductManager(Manager):
     def __init__(self, host, dbname, password):
         super(ProductManager, self).__init__(host, dbname, password)
-        self.product_categ = Table('product.category', self)
-        self.product_tmpl = Table('product.template', self)
-        self.product_product = Table('product.product', self)
-        self.ir_model_data = Table('ir.model.data', self)
     
-    def getID(self, args, table):
-        ids = table.search(args)
+    def getID(self, model, args):
+        ids = self.search(model, args)
         return ids[0] if len(ids) > 0 else False
     
     def getCategID(self, name):
-        return self.getID([('name', '=', name)], self.product_categ)
+        return self.getID('product.category', [('name', '=', name)])
     
     def insertOrUpdate(self, ref, model, data):
         '''
 Check the table ir_model_data to see if the ref exist, then insert or update in the given model.
 ref: external reference
-model: model related
+model: name of the related model
 data: data to insert/update
 return: id
         '''
-        ir_model_data_id = self.getID([('name', '=', ref), ('model', '=', model.name)], self.ir_model_data)
+        ir_model_data_id = self.getID('ir.model.data', [('name', '=', ref), ('model', '=', model)])
         if ir_model_data_id:
-            result = self.ir_model_data.read([ir_model_data_id], ['res_id'])
+            result = self.read('ir.model.data', [ir_model_data_id], ['res_id'])
             model_id = result[0]['res_id']
-            model.write([model_id], data)
+            self.write(model, [model_id], data)
         else:
-            model_id = model.create(data)
+            model_id = self.create(model, data)
             data_model = {
                 'name': ref,
-                'model': model.name,
+                'model': model,
                 'res_id': model_id,
             }
-            ir_model_data_id = self.ir_model_data.create(data_model)
+            ir_model_data_id = self.create('ir.model.data', data_model)
         return model_id
     
     def run(self, fileName):
@@ -72,7 +68,7 @@ return: id
             }
             
             ref = row['reference'] + '_product_template'
-            product_tmpl_id = self.insertOrUpdate(ref, self.product_tmpl, data_tmpl)
+            product_tmpl_id = self.insertOrUpdate(ref, 'product.template', data_tmpl)
             
             data_product = {
                 'default_code': row['reference'],
@@ -82,7 +78,7 @@ return: id
             }
             
             ref = row['reference']
-            product_product_id = self.insertOrUpdate(ref, self.product_product, data_product)
+            product_product_id = self.insertOrUpdate(ref, 'product.product', data_product)
             
             if __name__ == '__main__':
                 print(str(count) + '/' + str(c.total))

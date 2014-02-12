@@ -17,15 +17,18 @@ Manage the insertion of data into a database.
         self.db = dbname
         self.pwd = password
     
-    def dbaction(self, tableName, action, arg1, arg2=None):
-        '''
-tableName: the name of the table
-action: the action to execute
-arg1: first argument
-arg2: second argument
-        '''
-        if arg2 == None:
-            return self.sock.execute(self.db, self.uid, self.pwd, tableName, action, arg1)
-        else:
-            return self.sock.execute(self.db, self.uid, self.pwd, tableName, action, arg1, arg2)
+    def search(self, model, args):
+        return self.sock.execute(self.db, self.uid, self.pwd, model, 'search', args)    
+    
+    def read(self, model, ids, fields):
+        return self.sock.execute(self.db, self.uid, self.pwd, model, 'read', ids, fields)    
+    
+    def create(self, model, data):
+        return self.sock.execute(self.db, self.uid, self.pwd, model, 'create', data)    
+    
+    def write(self, model, ids, data):
+        return self.sock.execute(self.db, self.uid, self.pwd, model, 'write', ids, data)    
+    
+    def unlink(self, model, ids):
+        return self.sock.execute(self.db, self.uid, self.pwd, model, 'unlink', ids)
 
