@@ -23,5 +23,6 @@ Parse a csv file.
         with open(fileName, 'r') as csvFile:
             reader = csv.DictReader(csvFile, fieldNames, **input_kwargs)
             self.rows = [row for row in reader]
-
+        
+        self.total = len(self.rows)
 
