@@ -6,7 +6,6 @@ import time
 
 from csv_parser import CsvParser
 from manager import Manager
-from table import Table
 
 
 class ProductManager(Manager):
@@ -49,10 +48,7 @@ return: id
         #     product.template
         #     product.product
         #     ir.model.data
-        count = 0
-        for row in c.rows:
-            count += 1
-            
+        for row, count in c.rows():
             data_tmpl = {
                 'list_price': row['prix_vente_ht'],
                 'description': row['description'],
@@ -81,15 +77,15 @@ return: id
             product_product_id = self.insertOrUpdate(ref, 'product.product', data_product)
             
             if __name__ == '__main__':
-                print(str(count) + '/' + str(c.total))
+                print(str(count))
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 5:
         print('''
-    Usage:
-        python insert.py [host] [database] [password] [file.csv]
-    ''')
+Usage:
+    python insert.py [host] [database] [password] [file.csv]
+        ''')
         sys.exit()
     else:
         t1 = time.time()

@@ -19,10 +19,13 @@ Parse a csv file.
                 'quoting': csv.QUOTE_MINIMAL,
                 'lineterminator': '\n',
             }
-        
-        with open(fileName, 'r') as csvFile:
-            reader = csv.DictReader(csvFile, fieldNames, **input_kwargs)
-            self.rows = [row for row in reader]
-        
-        self.total = len(self.rows)
+        self.input_kwargs = input_kwargs
+        self.fieldNames = fieldNames
+        self.fileName = fileName
+    
+    def rows(self):
+        with open(self.fileName, 'r') as csvFile:
+            reader = csv.DictReader(csvFile, self.fieldNames, **self.input_kwargs)
+            for row in reader:
+                yield row, reader.line_num
 
