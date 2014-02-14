@@ -11,15 +11,27 @@ from manager import Manager
 class ProductManager(Manager):
     def __init__(self, host, dbname, password):
         super(ProductManager, self).__init__(host, dbname, password)
+        self.existing_prod_tmpl_records = self.prepare('product.template')
+        self.existing_prod_prod_records = self.prepare('product.product')
     
-    def getID(self, model, args):
-        ids = self.search(model, args)
-        return ids[0] if len(ids) > 0 else False
+    def prepare(self, model):
+        '''
+Search all the records in ir.model.data for a given model, then returns an object with ref as key and id as value.
+        '''
+        ids = self.search('ir.model.data', [('model', '=', model)])
+        data = self.read('ir.model.data', ids, ['res_id', 'name'])
+        result = {}
+        for item in data:
+            ref = item['name']
+            ID = item['res_id']
+            result[ref] = ID
+        return result
     
     def getCategID(self, name):
-        return self.getID('product.category', [('name', '=', name)])
+        ids = self.search('product.category', [('name', '=', name)])
+        return ids[0] if len(ids) > 0 else False
     
-    def insertOrUpdate(self, ref, model, data):
+    def insertOrUpdate(self, ref, model, data, checkList):
         '''
 Check the table ir_model_data to see if the ref exist, then insert or update in the given model.
 ref: external reference
@@ -27,20 +39,18 @@ model: name of the related model
 data: data to insert/update
 return: id
         '''
-        ir_model_data_id = self.getID('ir.model.data', [('name', '=', ref), ('model', '=', model)])
-        if ir_model_data_id:
-            result = self.read('ir.model.data', [ir_model_data_id], ['res_id'])
-            model_id = result[0]['res_id']
-            self.write(model, [model_id], data)
+        if ref in checkList:
+            ID = checkList[ref]
+            self.write(model, [ID], data)
         else:
-            model_id = self.create(model, data)
+            ID = self.create(model, data)
             data_model = {
                 'name': ref,
                 'model': model,
-                'res_id': model_id,
+                'res_id': ID,
             }
             ir_model_data_id = self.create('ir.model.data', data_model)
-        return model_id
+        return ID
     
     def run(self, fileName):
         c = CsvParser(fileName, delimiter=';')
@@ -62,19 +72,18 @@ return: id
                 'procure_method': 'make_to_stock',
                 'purchase_ok': True,
             }
-            
-            ref = row['reference'] + '_product_template'
-            product_tmpl_id = self.insertOrUpdate(ref, 'product.template', data_tmpl)
+            ref = row['reference']
+            product_tmpl_id = self.insertOrUpdate(
+                    ref + '_product_template','product.template', data_tmpl, self.existing_prod_tmpl_records)
             
             data_product = {
-                'default_code': row['reference'],
+                'default_code': ref,
                 'name_template': row['nom'],
                 'active': True,
                 'product_tmpl_id': product_tmpl_id,
             }
-            
-            ref = row['reference']
-            product_product_id = self.insertOrUpdate(ref, 'product.product', data_product)
+            product_product_id = self.insertOrUpdate(
+                    ref, 'product.product', data_product, self.existing_prod_prod_records)
             
             if __name__ == '__main__':
                 print(str(count))
